@@ -32,13 +32,13 @@ type Package struct {
 	//   - For MCPB: direct download URL
 	Identifier string `json:"identifier" minLength:"1" doc:"Package identifier - either a package name (for registries) or URL (for direct downloads)" example:"@modelcontextprotocol/server-brave-search"`
 	// Version is the package version (used by npm, pypi, nuget; not used by oci, mcpb where version is in the identifier)
-	Version string `json:"version" minLength:"1" doc:"Package version. Must be a specific version. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '>=1.2.3', '1.x', '1.*')." example:"1.0.2"`
+	Version string `json:"version,omitempty" minLength:"1" doc:"Package version. Must be a specific version. Version ranges are rejected (e.g., '^1.2.3', '~1.2.3', '>=1.2.3', '1.x', '1.*')." example:"1.0.2"`
 	// FileSHA256 is the SHA-256 hash for integrity verification (required for mcpb, optional for others)
 	FileSHA256 string `json:"fileSha256,omitempty" pattern:"^[a-f0-9]{64}$" doc:"SHA-256 hash of the package file for integrity verification. Required for MCPB packages and optional for other package types. Authors are responsible for generating correct SHA-256 hashes when creating server.json. If present, MCP clients must validate the downloaded file matches the hash before running packages to ensure file integrity." example:"fe333e598595000ae021bd27117db32ec69af6987f507ba7a63c90638ff633ce"`
 	// RunTimeHint suggests the appropriate runtime for the package
 	RunTimeHint string `json:"runtimeHint,omitempty" doc:"A hint to help clients determine the appropriate runtime for the package. This field should be provided when runtimeArguments are present." example:"npx"`
 	// Transport is required and specifies the transport protocol configuration
-	Transport Transport `json:"transport,omitempty" doc:"Transport protocol configuration for the package"`
+	Transport Transport `json:"transport" doc:"Transport protocol configuration for the package"`
 	// RuntimeArguments are passed to the package's runtime command (e.g., docker, npx)
 	RuntimeArguments []Argument `json:"runtimeArguments,omitempty" doc:"A list of arguments to be passed to the package's runtime command (such as docker or npx). The runtimeHint field should be provided when runtimeArguments are present."`
 	// PackageArguments are passed to the package's binary
@@ -65,10 +65,10 @@ const (
 
 type Input struct {
 	Description string   `json:"description,omitempty" doc:"A description of the input, which clients can use to provide context to the user."`
-	IsRequired  bool     `json:"isRequired,omitempty" default:"false" doc:"Whether the input is required"`
-	Format      Format   `json:"format,omitempty" default:"string" enum:"string,number,boolean,filepath" doc:"Specifies the input format. Supported values include filepath, which should be interpreted as a file on the user's filesystem."`
+	IsRequired  bool     `json:"isRequired,omitempty" doc:"Whether the input is required"`
+	Format      Format   `json:"format,omitempty" enum:"string,number,boolean,filepath" doc:"Specifies the input format. Supported values include filepath, which should be interpreted as a file on the user's filesystem."`
 	Value       string   `json:"value,omitempty" doc:"The value for the input. If this is not set, the user may be prompted to provide a value. Identifiers wrapped in {curly_braces} will be replaced with the corresponding properties from the input variables map."`
-	IsSecret    bool     `json:"isSecret,omitempty" default:"false" doc:"Indicates whether the input is a secret value (e.g., password, token). If true, clients should handle the value securely."`
+	IsSecret    bool     `json:"isSecret,omitempty" doc:"Indicates whether the input is a secret value (e.g., password, token). If true, clients should handle the value securely."`
 	Default     string   `json:"default,omitempty" doc:"The default value for the input. This should be a valid value for the input. If you want to provide input examples or guidance, use the placeholder field instead."`
 	Placeholder string   `json:"placeholder,omitempty" doc:"A placeholder for the input to be displaying during configuration. This is used to provide examples or guidance about the expected form or content of the input."`
 	Choices     []string `json:"choices,omitempty" doc:"A list of possible values for the input. If provided, the user must select one of these values."`
@@ -96,7 +96,7 @@ type Argument struct {
 	Type               ArgumentType `json:"type" doc:"Argument type: 'positional' or 'named'" example:"positional"`
 	Name               string       `json:"name,omitempty" doc:"The flag name (for named arguments), including any leading dashes. Empty for positional arguments." example:"--port"`
 	ValueHint          string       `json:"valueHint,omitempty" doc:"An identifier for positional arguments. Used in transport URL variable substitution." example:"file_path"`
-	IsRepeated         bool         `json:"isRepeated,omitempty" default:"false" doc:"Whether the argument can be repeated multiple times."`
+	IsRepeated         bool         `json:"isRepeated,omitempty" doc:"Whether the argument can be repeated multiple times."`
 }
 
 type Icon struct {
