@@ -13,6 +13,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
 
+	v0 "github.com/modelcontextprotocol/registry/internal/api/handlers/v0"
 	"github.com/modelcontextprotocol/registry/internal/config"
 	"github.com/modelcontextprotocol/registry/internal/service"
 	"github.com/modelcontextprotocol/registry/internal/telemetry"
@@ -129,7 +130,7 @@ func handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewHumaAPI creates a new Huma API with all routes registered
-func NewHumaAPI(cfg *config.Config, registry service.RegistryService, mux *http.ServeMux, metrics *telemetry.Metrics) huma.API {
+func NewHumaAPI(cfg *config.Config, registry service.RegistryService, mux *http.ServeMux, metrics *telemetry.Metrics, versionInfo *v0.VersionBody) huma.API {
 	// Create Huma API configuration
 	humaConfig := huma.DefaultConfig("Official MCP Registry", "1.0.0")
 	humaConfig.Info.Description = "A community driven registry service for Model Context Protocol (MCP) servers.\n\n[GitHub repository](https://github.com/modelcontextprotocol/registry) | [Documentation](https://github.com/modelcontextprotocol/registry/tree/main/docs)"
@@ -165,6 +166,10 @@ func NewHumaAPI(cfg *config.Config, registry service.RegistryService, mux *http.
 			Name:        "ping",
 			Description: "Simple ping endpoint for testing connectivity",
 		},
+		{
+			Name:        "version",
+			Description: "Version information endpoint for retrieving build and version details",
+		},
 	}
 
 	// Add metrics middleware with options
@@ -173,8 +178,8 @@ func NewHumaAPI(cfg *config.Config, registry service.RegistryService, mux *http.
 	))
 
 	// Register routes for all API versions
-	RegisterV0Routes(api, cfg, registry, metrics)
-	RegisterV0_1Routes(api, cfg, registry, metrics)
+	RegisterV0Routes(api, cfg, registry, metrics, versionInfo)
+	RegisterV0_1Routes(api, cfg, registry, metrics, versionInfo)
 
 	// Add /metrics for Prometheus metrics using promhttp
 	mux.Handle("/metrics", metrics.PrometheusHandler())

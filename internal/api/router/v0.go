@@ -12,10 +12,11 @@ import (
 )
 
 func RegisterV0Routes(
-	api huma.API, cfg *config.Config, registry service.RegistryService, metrics *telemetry.Metrics,
+	api huma.API, cfg *config.Config, registry service.RegistryService, metrics *telemetry.Metrics, versionInfo *v0.VersionBody,
 ) {
 	v0.RegisterHealthEndpoint(api, "/v0", cfg, metrics)
 	v0.RegisterPingEndpoint(api, "/v0")
+	v0.RegisterVersionEndpoint(api, "/v0", versionInfo)
 	v0.RegisterServersEndpoints(api, "/v0", registry)
 	v0.RegisterEditEndpoints(api, "/v0", registry, cfg)
 	v0auth.RegisterAuthEndpoints(api, "/v0", cfg)
@@ -23,10 +24,11 @@ func RegisterV0Routes(
 }
 
 func RegisterV0_1Routes(
-	api huma.API, cfg *config.Config, registry service.RegistryService, metrics *telemetry.Metrics,
+	api huma.API, cfg *config.Config, registry service.RegistryService, metrics *telemetry.Metrics, versionInfo *v0.VersionBody,
 ) {
 	v0.RegisterHealthEndpoint(api, "/v0.1", cfg, metrics)
 	v0.RegisterPingEndpoint(api, "/v0.1")
+	v0.RegisterVersionEndpoint(api, "/v0.1", versionInfo)
 	v0.RegisterServersEndpoints(api, "/v0.1", registry)
 	v0.RegisterEditEndpoints(api, "/v0.1", registry, cfg)
 	v0auth.RegisterAuthEndpoints(api, "/v0.1", cfg)
