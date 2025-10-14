@@ -102,9 +102,10 @@ func handle404(w http.ResponseWriter, r *http.Request) {
 	detail := "Endpoint not found. See /docs for the API documentation."
 
 	// Provide suggestions for common API endpoint mistakes
-	if !strings.HasPrefix(path, "/v0/") {
+	if !strings.HasPrefix(path, "/v0/") && !strings.HasPrefix(path, "/v0.1/") {
 		detail = fmt.Sprintf(
-			"Endpoint not found. Did you mean '%s'? See /docs for the API documentation.",
+			"Endpoint not found. Did you mean '%s' or '%s'? See /docs for the API documentation.",
+			"/v0.1"+path,
 			"/v0"+path,
 		)
 	}
@@ -138,6 +139,34 @@ func NewHumaAPI(cfg *config.Config, registry service.RegistryService, mux *http.
 	// Create a new API using humago adapter for standard library
 	api := humago.New(mux, humaConfig)
 
+	// Add OpenAPI tag metadata with descriptions
+	api.OpenAPI().Tags = []*huma.Tag{
+		{
+			Name:        "servers",
+			Description: "Operations for discovering and retrieving MCP servers",
+		},
+		{
+			Name:        "publish",
+			Description: "Operations for publishing MCP servers to the registry",
+		},
+		{
+			Name:        "auth",
+			Description: "Authentication operations for obtaining tokens to publish servers",
+		},
+		{
+			Name:        "admin",
+			Description: "Administrative operations for managing servers (requires elevated permissions)",
+		},
+		{
+			Name:        "health",
+			Description: "Health check endpoint for monitoring service availability",
+		},
+		{
+			Name:        "ping",
+			Description: "Simple ping endpoint for testing connectivity",
+		},
+	}
+
 	// Add metrics middleware with options
 	api.UseMiddleware(MetricTelemetryMiddleware(metrics,
 		WithSkipPaths("/health", "/metrics", "/ping", "/docs"),
@@ -145,6 +174,7 @@ func NewHumaAPI(cfg *config.Config, registry service.RegistryService, mux *http.
 
 	// Register routes for all API versions
 	RegisterV0Routes(api, cfg, registry, metrics)
+	RegisterV0_1Routes(api, cfg, registry, metrics)
 
 	// Add /metrics for Prometheus metrics using promhttp
 	mux.Handle("/metrics", metrics.PrometheusHandler())
